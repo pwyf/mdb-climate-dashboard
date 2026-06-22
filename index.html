@@ -307,12 +307,13 @@
 
   <!-- KPI strip -->
   <div class="kpi-strip">
-    <div class="kpi-card"><div class="kpi-value" id="kpi-projects">—</div><div class="kpi-label">Projects reported</div></div>
+    <div class="kpi-card"><div class="kpi-value" id="kpi-projects">—</div><div class="kpi-label">Projects reported*</div></div>
     <div class="kpi-card"><div class="kpi-value" id="kpi-cf">—</div><div class="kpi-label">Climate finance reported</div></div>
     <div class="kpi-card"><div class="kpi-value" id="kpi-mit">—</div><div class="kpi-label">Mitigation finance reported</div></div>
     <div class="kpi-card"><div class="kpi-value" id="kpi-adp">—</div><div class="kpi-label">Adaptation finance reported</div></div>
   </div>
 
+  <p style="font-size:11px;color:#888;margin-bottom:10px;">* Counts unique project IDs</p>
   <!-- Results bar -->
   <div class="results-bar">
     <div class="count" id="result-count"></div>
@@ -373,12 +374,13 @@ function updateResultsBar(rows) {
   const adp   = rows.reduce((s, r) => s + (r.adaptation     || 0), 0);
   const fmt   = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'M';
 
+  const uniqueProjects = new Set(rows.filter(r => r.project_id).map(r => r.project_id)).size + rows.filter(r => !r.project_id).length;
+  const allUniqueProjects = new Set(allData.filter(r => r.project_id).map(r => r.project_id)).size + allData.filter(r => !r.project_id).length;
   document.getElementById('result-count').innerHTML =
-    `Showing <strong>${n.toLocaleString()}</strong> of <strong>${allData.length.toLocaleString()}</strong> projects`;
+    `Showing <strong>${uniqueProjects.toLocaleString()}</strong> of <strong>${allUniqueProjects.toLocaleString()}</strong> unique projects`;
   document.getElementById('result-cf').innerHTML =
     `Total climate finance reported: <strong>${fmt(total)}</strong>`;
 
-  const uniqueProjects = new Set(rows.filter(r => r.project_id).map(r => r.project_id)).size + rows.filter(r => !r.project_id).length;
   document.getElementById('kpi-projects').textContent = uniqueProjects.toLocaleString();
   document.getElementById('kpi-cf').textContent  = fmt(total);
   document.getElementById('kpi-mit').textContent = fmt(mit);
