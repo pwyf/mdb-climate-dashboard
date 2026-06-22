@@ -378,7 +378,8 @@ function updateResultsBar(rows) {
   document.getElementById('result-cf').innerHTML =
     `Total climate finance reported: <strong>${fmt(total)}</strong>`;
 
-  document.getElementById('kpi-projects').textContent = n.toLocaleString();
+  const uniqueProjects = new Set(rows.filter(r => r.project_id).map(r => r.project_id)).size + rows.filter(r => !r.project_id).length;
+  document.getElementById('kpi-projects').textContent = uniqueProjects.toLocaleString();
   document.getElementById('kpi-cf').textContent  = fmt(total);
   document.getElementById('kpi-mit').textContent = fmt(mit);
   document.getElementById('kpi-adp').textContent = fmt(adp);
