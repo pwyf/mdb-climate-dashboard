@@ -407,7 +407,6 @@ function applyFilters() {
       let match = false;
       if (!match && selectedCountries.size > 0) {
         match = [...selectedCountries].some(sel => {
-          if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
           if (sel === 'Unclassified') return c.trim().toLowerCase() === 'regional';
           const includeMulti = document.getElementById('toggle-multicountry').checked;
           if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
@@ -578,7 +577,6 @@ function populateCountries() {
   const regions  = document.getElementById('country-regions');
   const list     = document.getElementById('country-list');
 
-  makeCountryOpt('Multicountry', 'Multicountry', true, special, selectedCountries);
   makeCountryOpt('Unclassified', 'Unclassified', true, special, selectedCountries);
 
   const regHeader = document.createElement('div');
