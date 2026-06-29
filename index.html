@@ -195,6 +195,7 @@
       color: #888; cursor: pointer; text-align: left;
     }
     .country-clear:hover { color: #2e7d32; background: #f6faf6; }
+    .country-section-label { padding: 4px 12px 2px; font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
 
 
     /* ── Multi-country toggle ── */
@@ -261,6 +262,7 @@
           <input class="country-search" id="country-search" type="text" placeholder="Search countries&#8230;">
           <div class="country-scroll">
             <div class="country-special" id="country-special"></div>
+            <div class="country-special" id="country-regions"></div>
             <div id="country-list"></div>
           </div>
           <button class="country-clear" id="country-clear" type="button">Clear selection</button>
@@ -400,15 +402,25 @@ function applyFilters() {
     if (year     && String(r.year)  !== year)     return false;
     if (type     && r.type      !== type)         return false;
     if (sovereign && r.sovereign !== sovereign)    return false;
-    if (selectedCountries.size > 0) {
+    if (selectedCountries.size > 0 || selectedRegions.size > 0) {
       const c = r.country || '';
-      const match = [...selectedCountries].some(sel => {
-        if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
-        if (sel === 'Regional')     return c.includes('Regional');
-        const includeMulti = document.getElementById('toggle-multicountry').checked;
-        if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
-        return c === sel;
-      });
+      let match = false;
+      if (!match && selectedCountries.size > 0) {
+        match = [...selectedCountries].some(sel => {
+          if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
+          const includeMulti = document.getElementById('toggle-multicountry').checked;
+          if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
+          return c === sel;
+        });
+      }
+      if (!match && selectedRegions.size > 0) {
+        const parts = c.split(';').map(p => p.trim().toLowerCase());
+        match = [...selectedRegions].some(regionLabel => {
+          const region = REGION_MAP.find(reg => reg.label === regionLabel);
+          if (!region) return false;
+          return parts.some(p => region.values.some(v => p === v.toLowerCase()));
+        });
+      }
       if (!match) return false;
     }
     if (search) {
@@ -429,27 +441,48 @@ function populateMDBs() {
   mdbs.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
 }
 
+const REGION_MAP = [
+  { label: 'African Caribbean and Pacific States', values: ['African Caribbean and Pacific States', 'ACP'] },
+  { label: 'Caribbean', values: ['Caribbean'] },
+  { label: 'Central Africa', values: ['Central Africa'] },
+  { label: 'Central and West Asia', values: ['Central and West Asia', 'Regional (Central and West Asia)'] },
+  { label: 'Central Asia', values: ['Central Asia'] },
+  { label: 'East Africa', values: ['East Africa', 'Eastern Africa'] },
+  { label: 'East Asia', values: ['East Asia'] },
+  { label: 'Eastern and Southern Africa', values: ['Eastern and Southern Africa'] },
+  { label: 'EU Countries', values: ['EU countries'] },
+  { label: 'Mediterranean', values: ['Mediterranean'] },
+  { label: 'Middle East and North Africa', values: ['Middle East and North Africa'] },
+  { label: 'Pacific', values: ['Pacific', 'Regional (Pacific)', 'Pacific Islands'] },
+  { label: 'South Asia', values: ['South Asia', 'Regional (South Asia)'] },
+  { label: 'Southeast Asia', values: ['Southeast Asia', 'Regional (Southeast Asia)'] },
+  { label: 'Southern Africa', values: ['Southern Africa'] },
+  { label: 'West Africa', values: ['West Africa', 'Western Africa'] },
+  { label: 'Western and Central Africa', values: ['Western and Central Africa'] },
+];
+let selectedRegions = new Set();
 let selectedCountries = new Set();
 
 function updateCountrySummary() {
   const s = document.getElementById('country-summary');
-  if (selectedCountries.size === 0) {
+  const total = selectedCountries.size + selectedRegions.size;
+  if (total === 0) {
     s.textContent = 'All countries ▾';
     s.classList.remove('has-selection');
   } else {
-    s.textContent = selectedCountries.size + ' selected ▾';
+    s.textContent = total + ' selected ▾';
     s.classList.add('has-selection');
   }
 }
 
-function makeCountryOpt(value, text, isSpecial, container) {
+function makeCountryOpt(value, text, isSpecial, container, targetSet) {
   const lbl = document.createElement('label');
   lbl.className = 'country-opt' + (isSpecial ? ' special' : '');
   const cb = document.createElement('input');
   cb.type = 'checkbox';
   cb.addEventListener('change', function() {
-    if (cb.checked) selectedCountries.add(value);
-    else selectedCountries.delete(value);
+    if (cb.checked) targetSet.add(value);
+    else targetSet.delete(value);
     updateCountrySummary();
     applyFilters();
   });
