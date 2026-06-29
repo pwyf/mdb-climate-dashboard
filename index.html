@@ -187,11 +187,11 @@
     .country-scroll { max-height: 240px; overflow-y: auto; }
     .country-special { border-bottom: 1px solid #e8eaed; }
     .country-opt {
-      display: flex; align-items: flex-start; gap: 8px;
+      display: flex; align-items: center; gap: 8px;
       padding: 6px 12px; font-size: 13px; cursor: pointer;
     }
     .country-opt:hover { background: #f6faf6; }
-    .country-opt input { accent-color: #2e7d32; width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; margin-top: 2px; }
+    .country-opt input { accent-color: #2e7d32; width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
     .country-opt.special { font-weight: 600; color: #1b5e20; }
     .country-clear {
       display: block; width: 100%; padding: 7px 12px; border: none;
@@ -239,7 +239,7 @@
   <div class="filter-bar">
     <div class="filter-group search-group">
       <label>Search</label>
-      <input type="text" id="search" placeholder="Project name, ID or country…">
+      <input type="text" id="search" autocomplete="off" placeholder="Project name, ID or country…">
     </div>
 
     <div class="filter-group">
