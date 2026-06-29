@@ -408,7 +408,7 @@ function applyFilters() {
       if (!match && selectedCountries.size > 0) {
         match = [...selectedCountries].some(sel => {
           if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
-          if (sel === 'Regional') return c.split(';').map(x => x.trim().toLowerCase()).includes('regional');
+          if (sel === 'Unclassified') return c.split(';').map(x => x.trim().toLowerCase()).includes('regional');
           const includeMulti = document.getElementById('toggle-multicountry').checked;
           if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
           return c === sel;
@@ -579,7 +579,7 @@ function populateCountries() {
   const list     = document.getElementById('country-list');
 
   makeCountryOpt('Multicountry', 'Multicountry', true, special, selectedCountries);
-  makeCountryOpt('Regional', 'Regional', true, special, selectedCountries);
+  makeCountryOpt('Unclassified', 'Unclassified', true, special, selectedCountries);
 
   const regHeader = document.createElement('div');
   regHeader.className = 'country-section-label';
