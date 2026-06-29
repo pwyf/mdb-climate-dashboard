@@ -130,13 +130,8 @@ for row in rows:
                     val = 'Sovereign'
 
         elif field == 'country':
-            # Normalise multi-country rows: collapse semicolon-separated
-            # lists of >1 country to "Multicountry"
             if val is not None:
-                val = str(val).strip()
-                parts = [p.strip() for p in val.split(';') if p.strip()]
-                if len(parts) > 1:
-                    val = 'Multicountry'
+                val = '; '.join(p.strip() for p in str(val).split(';') if p.strip()) or None
 
         elif field in NUMERIC_FIELDS:
             if val is not None:
