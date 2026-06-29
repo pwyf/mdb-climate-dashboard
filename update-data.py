@@ -131,7 +131,10 @@ for row in rows:
 
         elif field == 'country':
             if val is not None:
-                val = '; '.join(p.strip() for p in str(val).split(';') if p.strip()) or None
+                COUNTRY_ALIASES = {'ACP': 'Regional'}
+                parts = [COUNTRY_ALIASES.get(p.strip(), p.strip()) for p in str(val).split(';') if p.strip()]
+                parts = list(dict.fromkeys(parts))  # deduplicate, preserve order
+                val = '; '.join(parts) or None
 
         elif field in NUMERIC_FIELDS:
             if val is not None:
