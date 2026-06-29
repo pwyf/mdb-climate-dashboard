@@ -408,7 +408,7 @@ function applyFilters() {
       if (!match && selectedCountries.size > 0) {
         match = [...selectedCountries].some(sel => {
           if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
-          if (sel === 'Unclassified') return c.split(';').map(x => x.trim().toLowerCase()).includes('regional');
+          if (sel === 'Unclassified') return c.trim().toLowerCase() === 'regional';
           const includeMulti = document.getElementById('toggle-multicountry').checked;
           if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
           return c === sel;
