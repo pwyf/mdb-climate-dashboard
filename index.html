@@ -408,17 +408,21 @@ function applyFilters() {
       if (!match && selectedCountries.size > 0) {
         match = [...selectedCountries].some(sel => {
           if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
+          if (sel === 'Regional') return c.split(';').map(x => x.trim().toLowerCase()).includes('regional');
           const includeMulti = document.getElementById('toggle-multicountry').checked;
           if (includeMulti) return c.split(';').map(x => x.trim()).includes(sel);
           return c === sel;
         });
       }
       if (!match && selectedRegions.size > 0) {
-        const parts = c.split(';').map(p => p.trim().toLowerCase());
+        const parts = c.split(';').map(p => p.trim());
         match = [...selectedRegions].some(regionLabel => {
           const region = REGION_MAP.find(reg => reg.label === regionLabel);
           if (!region) return false;
-          return parts.some(p => region.values.some(v => p === v.toLowerCase()));
+          return parts.some(p =>
+            region.labels.some(l => p.toLowerCase() === l) ||
+            matchesRegionCountry(p, region.countries)
+          );
         });
       }
       if (!match) return false;
@@ -441,24 +445,102 @@ function populateMDBs() {
   mdbs.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
 }
 
+function matchesRegionCountry(dataPart, regionCountries) {
+  const d = dataPart.toLowerCase().trim();
+  return regionCountries.some(c => {
+    const r = c.toLowerCase().trim();
+    if (d === r) return true;
+    // Data starts with region key followed by space or comma (e.g. "Lao People's..." matches "lao")
+    if (r.length >= 3 && (d.startsWith(r + ' ') || d.startsWith(r + ','))) return true;
+    // Region key starts with data value (e.g. "brunei darussalam" matches "brunei")
+    if (d.length >= 3 && (r.startsWith(d + ' ') || r.startsWith(d + ','))) return true;
+    return false;
+  });
+}
+
 const REGION_MAP = [
-  { label: 'African Caribbean and Pacific States', values: ['African Caribbean and Pacific States', 'ACP'] },
-  { label: 'Caribbean', values: ['Caribbean'] },
-  { label: 'Central Africa', values: ['Central Africa'] },
-  { label: 'Central and West Asia', values: ['Central and West Asia', 'Regional (Central and West Asia)'] },
-  { label: 'Central Asia', values: ['Central Asia'] },
-  { label: 'East Africa', values: ['East Africa', 'Eastern Africa'] },
-  { label: 'East Asia', values: ['East Asia'] },
-  { label: 'Eastern and Southern Africa', values: ['Eastern and Southern Africa'] },
-  { label: 'EU Countries', values: ['EU countries'] },
-  { label: 'Mediterranean', values: ['Mediterranean'] },
-  { label: 'Middle East and North Africa', values: ['Middle East and North Africa'] },
-  { label: 'Pacific', values: ['Pacific', 'Regional (Pacific)', 'Pacific Islands'] },
-  { label: 'South Asia', values: ['South Asia', 'Regional (South Asia)'] },
-  { label: 'Southeast Asia', values: ['Southeast Asia', 'Regional (Southeast Asia)'] },
-  { label: 'Southern Africa', values: ['Southern Africa'] },
-  { label: 'West Africa', values: ['West Africa', 'Western Africa'] },
-  { label: 'Western and Central Africa', values: ['Western and Central Africa'] },
+  {
+    label: 'North America',
+    labels: [],
+    countries: ['Bermuda', 'Canada', 'United States']
+  },
+  {
+    label: 'Latin America and Caribbean',
+    labels: ['latin america', 'caribbean', 'latin america and caribbean', 'latin america and the caribbean'],
+    countries: [
+      'Antigua and Barbuda', 'Argentina', 'Aruba', 'Bahamas', 'Barbados', 'Belize',
+      'Bolivia', 'Brazil', 'British Virgin Islands', 'Cayman Islands', 'Chile', 'Colombia',
+      'Costa Rica', 'Cuba', 'Curacao', 'Dominica', 'Dominican Republic', 'Ecuador',
+      'El Salvador', 'Grenada', 'Guatemala', 'Guyana', 'Haiti', 'Honduras', 'Jamaica',
+      'Mexico', 'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Puerto Rico',
+      'Sint Maarten', 'St. Kitts and Nevis', 'St. Lucia', 'St. Martin',
+      'St. Vincent and the Grenadines', 'Suriname', 'Trinidad and Tobago',
+      'Turks and Caicos Islands', 'Uruguay', 'Venezuela', 'Virgin Islands'
+    ]
+  },
+  {
+    label: 'Sub-Saharan Africa',
+    labels: ['africa', 'eastern and southern africa', 'western and central africa',
+             'east africa', 'eastern africa', 'central africa', 'southern africa',
+             'west africa', 'western africa'],
+    countries: [
+      'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cape Verde',
+      'Cameroon', 'Central African Republic', 'Chad', 'Comoros', 'Congo',
+      'Cote d'Ivoire', 'Côte d'Ivoire', 'Equatorial Guinea', 'Eritrea', 'Eswatini',
+      'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Kenya', 'Lesotho', 'Liberia',
+      'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Mozambique', 'Namibia',
+      'Niger', 'Nigeria', 'Rwanda', 'Sao Tome', 'São Tomé', 'Senegal', 'Seychelles',
+      'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania',
+      'Togo', 'Uganda', 'Zambia', 'Zimbabwe'
+    ]
+  },
+  {
+    label: 'Middle East, North Africa, Afghanistan and Pakistan',
+    labels: ['middle east and north africa'],
+    countries: [
+      'Afghanistan', 'Algeria', 'Bahrain', 'Djibouti', 'Egypt', 'Iran', 'Iraq', 'Israel',
+      'Jordan', 'Kuwait', 'Lebanon', 'Libya', 'Malta', 'Morocco', 'Oman', 'Pakistan',
+      'Qatar', 'Saudi Arabia', 'Syrian', 'Tunisia', 'United Arab Emirates',
+      'West Bank and Gaza', 'Yemen'
+    ]
+  },
+  {
+    label: 'Europe and Central Asia',
+    labels: ['eu countries', 'central and west asia', 'central asia', 'mediterranean',
+             'western balkans', 'regional (central and west asia)', 'asia'],
+    countries: [
+      'Albania', 'Andorra', 'Armenia', 'Austria', 'Azerbaijan', 'Belarus', 'Belgium',
+      'Bosnia and Herzegovina', 'Bosnia And Herzegovina', 'Bulgaria', 'Channel Islands',
+      'Croatia', 'Cyprus', 'Czech Republic', 'Czechia', 'Denmark', 'Estonia', 'Faroe Islands',
+      'Finland', 'France', 'Georgia', 'Germany', 'Gibraltar', 'Greece', 'Greenland',
+      'Hungary', 'Iceland', 'Ireland', 'Isle of Man', 'Italy', 'Kazakhstan', 'Kosovo',
+      'Kyrgyz Republic', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Moldova',
+      'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway', 'Poland',
+      'Portugal', 'Romania', 'Russian Federation', 'Russia', 'San Marino', 'Serbia',
+      'Slovak Republic', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+      'Tajikistan', 'Turkey', 'Türkiye', 'Turkmenistan', 'Ukraine',
+      'United Kingdom', 'Uzbekistan'
+    ]
+  },
+  {
+    label: 'South Asia',
+    labels: ['south asia', 'regional (south asia)', 'asia'],
+    countries: ['Bangladesh', 'Bhutan', 'India', 'Maldives', 'Nepal', 'Sri Lanka']
+  },
+  {
+    label: 'East Asia and Pacific',
+    labels: ['east asia', 'southeast asia', 'pacific', 'regional (pacific)',
+             'regional (southeast asia)', 'asia'],
+    countries: [
+      'American Samoa', 'Australia', 'Brunei', 'Cambodia', 'China', 'Cook Islands',
+      'Federated States of Micronesia', 'Fiji', 'French Polynesia', 'Guam', 'Hong Kong',
+      'Indonesia', 'Japan', 'Kiribati', 'Korea', 'Lao', 'Macao', 'Macau', 'Malaysia',
+      'Marshall Islands', 'Micronesia', 'Mongolia', 'Myanmar', 'Nauru', 'New Caledonia',
+      'New Zealand', 'Niue', 'Northern Mariana Islands', 'Palau', 'Papua New Guinea',
+      'Philippines', 'Samoa', 'Singapore', 'Solomon Islands', 'Taiwan', 'Thailand',
+      'Timor-Leste', 'Tonga', 'Tuvalu', 'Vanuatu', 'Viet Nam'
+    ]
+  }
 ];
 let selectedRegions = new Set();
 let selectedCountries = new Set();
@@ -497,6 +579,7 @@ function populateCountries() {
   const list     = document.getElementById('country-list');
 
   makeCountryOpt('Multicountry', 'Multicountry', true, special, selectedCountries);
+  makeCountryOpt('Regional', 'Regional', true, special, selectedCountries);
 
   const regHeader = document.createElement('div');
   regHeader.className = 'country-section-label';
@@ -506,7 +589,7 @@ function populateCountries() {
 
   const nonCountry = new Set([
     'multicountry', 'regional',
-    ...REGION_MAP.flatMap(r => r.values.map(v => v.toLowerCase()))
+    ...REGION_MAP.flatMap(r => r.labels)
   ]);
 
   const seen = new Map();
