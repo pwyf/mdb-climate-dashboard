@@ -131,7 +131,7 @@ for row in rows:
 
         elif field == 'country':
             if val is not None:
-                COUNTRY_ALIASES = {'ACP': 'Regional'}
+                COUNTRY_ALIASES = {'ACP': 'Regional', 'Viet nam': 'Viet Nam', 'Viet Nam)': 'Viet Nam'}
                 parts = [COUNTRY_ALIASES.get(p.strip(), p.strip()) for p in str(val).split(';') if p.strip()]
                 parts = list(dict.fromkeys(parts))  # deduplicate, preserve order
                 val = '; '.join(parts) or None
